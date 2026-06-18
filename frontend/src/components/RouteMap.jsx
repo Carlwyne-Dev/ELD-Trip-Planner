@@ -421,14 +421,21 @@ export default function RouteMap({ route, logDays, isDark, onUpdateLoc }) {
                 const stop = stops[stopIdx];
                 if (!stop || stop.originalIdx == null || !positions[stop.originalIdx]) return null;
                 const hwyCoord = positions[stop.originalIdx];
-                let coordsArray = snapData.detourPolyline;
-                if (!coordsArray || coordsArray.length < 2) {
-                    coordsArray = [hwyCoord, [snapData.lng, snapData.lat]];
+                let coordsArray = [hwyCoord];
+                if (snapData.detourPolyline && snapData.detourPolyline.length > 0) {
+                    coordsArray = [...coordsArray, ...snapData.detourPolyline];
+                } else {
+                    coordsArray.push([snapData.lng, snapData.lat]);
                 }
                 
-                // Mapbox LineString needs at least 2 distinct points. If they are exactly the same, jitter slightly.
-                if (coordsArray.length === 2 && coordsArray[0][0] === coordsArray[1][0] && coordsArray[0][1] === coordsArray[1][1]) {
-                    coordsArray[1] = [coordsArray[1][0] + 0.00001, coordsArray[1][1] + 0.00001];
+                // Filter out any identical adjacent points just to be ultra-safe for Mapbox GL
+                coordsArray = coordsArray.filter((pt, i) => {
+                    if (i === 0) return true;
+                    return pt[0] !== coordsArray[i-1][0] || pt[1] !== coordsArray[i-1][1];
+                });
+
+                if (coordsArray.length < 2) {
+                    coordsArray.push([coordsArray[0][0] + 0.00001, coordsArray[0][1] + 0.00001]);
                 }
                 return {
                     type: 'Feature',
