@@ -208,8 +208,8 @@ function SmartMarker({ id, lng, lat, type, label, loc, time, day, duration, acti
     
     let displayLabel = label;
     const snappable = (type === 'rest' || type === 'fuel' || type === 'meal');
-    if (snappable && !snappedCoords) {
-        displayLabel = label;
+    if (snappable && realName) {
+        displayLabel = realName;
     }
     
     // Theme colors
@@ -402,9 +402,9 @@ export default function RouteMap({ route, logDays, isDark, onUpdateLoc }) {
                 const stop = stops[stopIdx];
                 if (!stop || stop.originalIdx == null || !positions[stop.originalIdx]) return null;
                 const hwyCoord = positions[stop.originalIdx];
-                const coordsArray = snapData.coords.detourPolyline
-                    ? snapData.coords.detourPolyline
-                    : [hwyCoord, [snapData.coords.lng, snapData.coords.lat]];
+                const coordsArray = snapData.detourPolyline
+                    ? snapData.detourPolyline
+                    : [hwyCoord, [snapData.lng, snapData.lat]];
                 return {
                     type: 'Feature',
                     properties: { type: stop.type },
