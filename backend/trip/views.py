@@ -1,11 +1,17 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import AllowAny
 from .serializers import TripRequestSerializer
 from .geo_service import geocode_location, get_route
 from .hos_calculator import calculate_hos
 
 class TripView(APIView):
+    # Public endpoint — no auth/session needed, so CSRF is not enforced
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request):  # << [4] POST /api/trip/ — the one endpoint
         serializer = TripRequestSerializer(data=request.data)
         if not serializer.is_valid():
