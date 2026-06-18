@@ -39,9 +39,6 @@ function App() {
     try {
       const result = await planTrip(data);
       setTripData(result);
-      setTimeout(() => {
-        document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-      }, 200);
     } catch (err) {
       setError(err.message);
     } finally {

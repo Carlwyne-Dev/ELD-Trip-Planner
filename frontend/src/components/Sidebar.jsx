@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Route, FileText, Activity, Settings, Truck } from 'lucide-react';
+import { LayoutDashboard, Route, FileText, Activity, Settings, Truck, LogOut } from 'lucide-react';
 
 const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', id: 'dashboard' },
@@ -40,15 +40,13 @@ export default function Sidebar({ activeTab, onTabChange }) {
             </div>
 
             <div className="sidebar-bottom mt-auto">
-                <div className="driver-profile-card panel-box p-3 rounded" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 4, background: '#333', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                        <img src="https://ui-avatars.com/api/?name=M+A&background=0D8ABC&color=fff" alt="Driver" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                    <div>
-                        <div className="text-main" style={{ fontSize: 12, fontWeight: 700 }}>M. ANDERSON</div>
-                        <div className="text-muted" style={{ fontSize: 10, fontWeight: 600 }}>ID: 882-QX</div>
-                    </div>
-                </div>
+                <button 
+                    className="flex items-center gap-3 px-3 py-2 rounded w-full text-left transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                    style={{ color: '#ef4444', fontWeight: 600, fontSize: 13, border: 'none', background: 'transparent', cursor: 'pointer' }}
+                >
+                    <LogOut size={16} />
+                    <span>Logout</span>
+                </button>
             </div>
         </div>
     );
