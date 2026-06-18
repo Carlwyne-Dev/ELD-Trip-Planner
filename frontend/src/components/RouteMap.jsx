@@ -142,16 +142,33 @@ function SmartMarker({ id, lng, lat, type, label, loc, time, day, duration, acti
                     // Allow up to 100 miles detour in the desert
                     if (dist < 100) {
                         // Step 1: Snap the highway point to actual road network
-                        // Step 2: Route from that snapped road point to the amenity only
-                        // (We don't include a rejoin point — the dashed line should only show the detour exit, not the return)
+                        // Step 2: Route highway → amenity → rejoin point (U-shaped detour visual)
                         const nearestUrl = `https://router.project-osrm.org/nearest/v1/driving/${lng},${lat}`;
                         fetch(nearestUrl)
                         .then(r => r.json())
                         .then(nearestData => {
                             const snapped = nearestData?.waypoints?.[0]?.location ?? [lng, lat];
 
-                            // Only route from highway snap point → amenity (2 points, clean detour exit line)
-                            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${snapped[0]},${snapped[1]};${coords.lng},${coords.lat}?overview=full&geometries=geojson`;
+                            // Find a rejoin point just slightly ahead on the route (~2-3 miles ahead)
+                            // Use a small lookahead (+40 points) so it rejoins nearby, not miles back
+                            let rejoinPoint = null;
+                            if (routePositions && routePositions.length > 0) {
+                                let closestIdx = 0;
+                                let minDist = Infinity;
+                                routePositions.forEach((p, i) => {
+                                    const d = Math.pow(p[0]-lng, 2) + Math.pow(p[1]-lat, 2);
+                                    if (d < minDist) { minDist = d; closestIdx = i; }
+                                });
+                                // +40 route points ahead = only a couple miles forward on the highway
+                                const aheadIdx = Math.min(routePositions.length - 1, closestIdx + 40);
+                                rejoinPoint = routePositions[aheadIdx];
+                            }
+
+                            let osrmUrl = `https://router.project-osrm.org/route/v1/driving/${snapped[0]},${snapped[1]};${coords.lng},${coords.lat}`;
+                            if (rejoinPoint) {
+                                osrmUrl += `;${rejoinPoint[0]},${rejoinPoint[1]}`;
+                            }
+                            osrmUrl += `?overview=full&geometries=geojson`;
                             
                             return fetch(osrmUrl);
                         })
