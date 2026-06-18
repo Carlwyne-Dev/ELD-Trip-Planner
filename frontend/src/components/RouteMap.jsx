@@ -301,7 +301,11 @@ function SmartMarker({ id, lng, lat, type, label, loc, time, day, duration, acti
                             {duration != null && (
                                 <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginTop: 6, paddingTop: 8, borderTop: `1px solid ${border}` }}>
                                     <span style={{ color: isDark ? '#444' : '#94a3b8', fontSize: 9, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', minWidth: 34 }}>DUR</span>
-                                    <span style={{ color: color, fontSize: 18, fontWeight: 900, fontFamily: 'JetBrains Mono, monospace', lineHeight: 1 }}>{Number(duration).toFixed(1)}<span style={{ fontSize: 11, marginLeft: 2 }}>h</span></span>
+                                    <span style={{ color: color, fontSize: 18, fontWeight: 900, fontFamily: 'JetBrains Mono, monospace', lineHeight: 1 }}>
+                                        {/* Show canonical duration — 10h for rest, 0.5h for 30-min break. Raw segment duration is unreliable because midnight-splitting cuts it into chunks. */}
+                                        {type === 'rest' ? '10.0' : type === 'break' ? '0.5' : Number(duration).toFixed(1)}
+                                        <span style={{ fontSize: 11, marginLeft: 2 }}>h</span>
+                                    </span>
                                 </div>
                             )}
                         </div>
