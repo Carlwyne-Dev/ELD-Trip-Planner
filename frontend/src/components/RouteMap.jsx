@@ -332,7 +332,8 @@ export default function RouteMap({ route, logDays, isDark, onUpdateLoc }) {
     const [snaps, setSnaps] = useState({});
 
     const handleSnap = (id, coords, name) => {
-        setSnaps(prev => ({ ...prev, [id]: { coords, name } }));
+        // Store flat so snapData.detourPolyline, snapData.lng, snapData.lat are all at top level
+        setSnaps(prev => ({ ...prev, [id]: { ...coords, name } }));
     };
 
     const hasRoute = route && route.waypoints && route.waypoints.length > 0;
