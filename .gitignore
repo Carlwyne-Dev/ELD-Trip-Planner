@@ -1,4 +1,7 @@
 # ── Python / Django ──────────────────────────────────────────────────────────
+# AI tool directories — never commit
+.agents/
+.gemini/
 __pycache__/
 *.py[cod]
 *.pyo
