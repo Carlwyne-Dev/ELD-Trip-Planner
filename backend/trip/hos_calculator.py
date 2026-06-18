@@ -117,7 +117,7 @@ def calculate_hos(current_location, pickup_location, dropoff_location,
     add("OFF_DUTY", 6.0, current_location, "Off Duty — Pre-shift")
 
     # Shift Start
-    add("ON_DUTY_NOT_DRIVING", PRE_TRIP_DUR, current_location, "Pre-trip inspection")
+    add("ON_DUTY_NOT_DRIVING", PRE_TRIP_DUR, current_location, "Pre-trip inspection")  # << [2] 14-HR WINDOW
 
     # Main driving loop
     MAX_ITER = 1000
@@ -128,25 +128,25 @@ def calculate_hos(current_location, pickup_location, dropoff_location,
 
         t_driving = MAX_DRIVING - state["shift_driving"]
         t_onduty  = MAX_ON_DUTY - state["shift_elapsed"] - POST_TRIP_DUR
-        t_break   = BREAK_AFTER - state["drive_since_break"]
+        t_break   = BREAK_AFTER - state["drive_since_break"]  # << [1] 30-MIN CUMULATIVE BREAK
         t_cycle   = CYCLE_LIMIT - state["cycle_hours"] - POST_TRIP_DUR
 
         if min(t_driving, t_onduty) <= 0.01 or t_cycle <= 0.01:
             add("ON_DUTY_NOT_DRIVING", POST_TRIP_DUR, loc_label(), "Post-trip inspection")
-            
-            if state["cycle_hours"] >= CYCLE_LIMIT:
+
+            if state["cycle_hours"] >= CYCLE_LIMIT:  # << [3] CYCLE EXHAUSTION — 34-HR RESTART
                 add("OFF_DUTY", 2.0, loc_label(), "Off Duty — Evening")
                 add("OFF_DUTY", RESTART_REQUIRED - 2.0, loc_label(), "34-hr cycle restart")
                 state["cycle_hours"] = 0.0
             else:
                 add("OFF_DUTY", 2.0, loc_label(), "Off Duty — Evening")
                 add("SLEEPER_BERTH", REST_REQUIRED - 2.0, loc_label(), "10-hr mandatory rest")
-                
+
             state["shift_driving"]    = 0.0
             state["shift_elapsed"]    = 0.0
             state["shift_started"]    = False
             state["drive_since_break"] = 0.0
-            
+
             add("ON_DUTY_NOT_DRIVING", PRE_TRIP_DUR, loc_label(), "Pre-trip inspection")
             continue
 
@@ -248,6 +248,7 @@ def calculate_hos(current_location, pickup_location, dropoff_location,
         "total_days":          len(log_days),
         "total_driving_hours": round(driving_hours, 1),
         "total_on_duty_hours": round(on_duty_hours, 1),
+        "cycle_hours_used":    round(min(cycle_used + on_duty_hours, CYCLE_LIMIT), 1),
         "origin":              current_location,
         "destination":         dropoff_location,
     }

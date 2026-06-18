@@ -6,7 +6,7 @@ from .geo_service import geocode_location, get_route
 from .hos_calculator import calculate_hos
 
 class TripView(APIView):
-    def post(self, request):
+    def post(self, request):  # << [4] POST /api/trip/ — the one endpoint
         serializer = TripRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({"error": list(serializer.errors.values())[0][0]}, status=status.HTTP_400_BAD_REQUEST)
