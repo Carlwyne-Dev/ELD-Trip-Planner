@@ -8,8 +8,7 @@
     "backend": {
       "root": "backend",
       "routePrefix": "/_/backend",
-      "framework": "other",
-      "entrypoint": "backend/wsgi.py"
+      "framework": "django"
     }
   }
 }
