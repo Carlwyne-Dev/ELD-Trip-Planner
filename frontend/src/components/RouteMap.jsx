@@ -421,9 +421,15 @@ export default function RouteMap({ route, logDays, isDark, onUpdateLoc }) {
                 const stop = stops[stopIdx];
                 if (!stop || stop.originalIdx == null || !positions[stop.originalIdx]) return null;
                 const hwyCoord = positions[stop.originalIdx];
-                const coordsArray = snapData.detourPolyline
-                    ? snapData.detourPolyline
-                    : [hwyCoord, [snapData.lng, snapData.lat]];
+                let coordsArray = snapData.detourPolyline;
+                if (!coordsArray || coordsArray.length < 2) {
+                    coordsArray = [hwyCoord, [snapData.lng, snapData.lat]];
+                }
+                
+                // Mapbox LineString needs at least 2 distinct points. If they are exactly the same, jitter slightly.
+                if (coordsArray.length === 2 && coordsArray[0][0] === coordsArray[1][0] && coordsArray[0][1] === coordsArray[1][1]) {
+                    coordsArray[1] = [coordsArray[1][0] + 0.00001, coordsArray[1][1] + 0.00001];
+                }
                 return {
                     type: 'Feature',
                     properties: { type: stop.type },
