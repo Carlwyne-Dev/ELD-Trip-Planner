@@ -95,22 +95,38 @@ function SmartMarker({ id, lng, lat, type, label, loc, time, day, duration, acti
         let isMounted = true;
         let query = 'motel';
         if (type === 'fuel') query = 'gas+station';
-        // Expand search radius to ~100 miles to guarantee we find something even in remote desert areas
-        const viewbox = `${lng - 1.5},${lat + 1.5},${lng + 1.5},${lat - 1.5}`;
+        // 0.4 degrees is roughly a 25-30 mile box.
+        const viewbox = `${lng - 0.4},${lat + 0.4},${lng + 0.4},${lat - 0.4}`;
         const delay = snapIndex * 1200;
         
         const timer = setTimeout(() => {
-            // Removed bounded=1 so it can look slightly outside the box if the box is completely empty
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&viewbox=${viewbox}&limit=1&addressdetails=1`, {
+            // Use bounded=1 and limit=10 to find multiple options inside the box
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&viewbox=${viewbox}&bounded=1&limit=10&addressdetails=1`, {
                 headers: { 'User-Agent': 'ELD-Planner-App' }
             })
             .then(res => res.json())
             .then(data => {
                 if (isMounted && data && data.length > 0) {
-                    const foundName = data[0].name || data[0].display_name.split(',')[0];
-                    const coords = { lng: parseFloat(data[0].lon), lat: parseFloat(data[0].lat) };
+                    // Find the closest station from the results
+                    let closestObj = data[0];
+                    let minDist = Infinity;
+                    data.forEach(item => {
+                        const itemLng = parseFloat(item.lon);
+                        const itemLat = parseFloat(item.lat);
+                        const dLat = (itemLat - lat) * Math.PI / 180;
+                        const dLon = (itemLng - lng) * Math.PI / 180;
+                        const a = Math.sin(dLat/2)**2 + Math.cos(lat*Math.PI/180) * Math.cos(itemLat*Math.PI/180) * Math.sin(dLon/2)**2;
+                        const dist = 3958.8 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                        if (dist < minDist) {
+                            minDist = dist;
+                            closestObj = item;
+                        }
+                    });
+
+                    const foundName = closestObj.name || closestObj.display_name.split(',')[0];
+                    const coords = { lng: parseFloat(closestObj.lon), lat: parseFloat(closestObj.lat) };
                     
-                    const addr = data[0].address || {};
+                    const addr = closestObj.address || {};
                     const city = addr.city || addr.town || addr.village || addr.county || '';
                     const stateName = addr.state || '';
                     const fetchedLoc = (city && stateName) ? `${city}, ${stateName}` : foundName;
