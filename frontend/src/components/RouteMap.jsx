@@ -94,12 +94,14 @@ function SmartMarker({ id, lng, lat, type, label, loc, time, day, duration, acti
         
         let isMounted = true;
         let query = 'motel';
-        if (type === 'fuel') query = 'gas station';
-        const viewbox = `${lng - 0.65},${lat + 0.65},${lng + 0.65},${lat - 0.65}`;
+        if (type === 'fuel') query = 'gas+station';
+        // Expand search radius to ~100 miles to guarantee we find something even in remote desert areas
+        const viewbox = `${lng - 1.5},${lat + 1.5},${lng + 1.5},${lat - 1.5}`;
         const delay = snapIndex * 1200;
         
         const timer = setTimeout(() => {
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&viewbox=${viewbox}&bounded=1&limit=1&addressdetails=1`, {
+            // Removed bounded=1 so it can look slightly outside the box if the box is completely empty
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&viewbox=${viewbox}&limit=1&addressdetails=1`, {
                 headers: { 'User-Agent': 'ELD-Planner-App' }
             })
             .then(res => res.json())
@@ -121,7 +123,8 @@ function SmartMarker({ id, lng, lat, type, label, loc, time, day, duration, acti
                     const a = Math.sin(dLat/2)**2 + Math.cos(lat*Math.PI/180) * Math.cos(coords.lat*Math.PI/180) * Math.sin(dLon/2)**2;
                     const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
                     
-                    if (dist < 45) {
+                    // Allow up to 100 miles detour in the desert
+                    if (dist < 100) {
                         // Step 1: Snap the highway point to actual road network
                         // Step 2: Route from that snapped road point to the amenity
                         // Step 3: Route from the amenity back to the main route (further ahead) to save time
